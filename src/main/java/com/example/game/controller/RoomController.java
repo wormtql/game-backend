@@ -10,38 +10,37 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @RestController
 public class RoomController {
-    SimpMessageSendingOperations simpMessageSendingOperations;
-    RoomService roomService;
-
-    @Autowired
-    public RoomController(SimpMessageSendingOperations simpMessageSendingOperations,
-                          RoomService roomService) {
-        this.simpMessageSendingOperations = simpMessageSendingOperations;
-        this.roomService = roomService;
-    }
-
-    @GetMapping("/room/apply")
-    public ApplyRoomResponse applyRoom(@RequestBody ApplyRoomRequestObject requestObject,
-                                       HttpServletRequest request) {
-        return roomService.applyRoom(requestObject, request);
-    }
-
-    @GetMapping("/room/join")
-    public CommonResponse joinRoom(HttpServletRequest request,
-                                   @RequestBody JoinRoomRequestObject requestObject) {
-        return roomService.joinRoom(request, requestObject);
-    }
-
-    @MessageMapping("/play")
-    public void play(StompHeaderAccessor headerAccessor) {
-//        simpMessageSendingOperations.convertAndSendToUser("1", "/topic/", 1);
-
-    }
+////    SimpMessageSendingOperations simpMessageSendingOperations;
+//    RoomService roomService;
+//
+//    @Autowired
+//    public RoomController(RoomService roomService) {
+////        this.simpMessageSendingOperations = simpMessageSendingOperations;
+//        this.roomService = roomService;
+//    }
+//
+//    @PostMapping("/api/room/apply")
+//    public ApplyRoomResponse applyRoom(@RequestBody ApplyRoomRequestObject requestObject,
+//                                       HttpServletResponse response,
+//                                       HttpServletRequest request) {
+//        return roomService.applyRoom(requestObject, response, request);
+//    }
+//
+//    @PostMapping("/api/room/join")
+//    public CommonResponse joinRoom(HttpServletRequest request,
+//                                   HttpServletResponse response,
+//                                   @RequestBody JoinRoomRequestObject requestObject) {
+//        return roomService.joinRoom(request, response, requestObject);
+//    }
+//
+////    @PostMapping("/room")
 }

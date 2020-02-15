@@ -1,38 +1,38 @@
 package com.example.game.service;
 
+import com.example.game.game_spec.GameSpecFactory;
+import com.example.game.game_state.GameStateFactory;
 import com.example.game.model.Room;
-import com.example.game.model.game_state.HexGameState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class RoomStateService {
+    @Autowired
+    private RoomIdService roomIdService;
+    @Autowired
+    private GameSpecFactory gameSpecFactory;
+    @Autowired
+    private GameStateFactory gameStateFactory;
+
     private Map<Integer, Room> rooms = new HashMap<>();
-    private Logger logger = LoggerFactory.getLogger(RoomStateService.class);
 
-    public boolean createRoom(int id, String type, String password) {
-        logger.info("creating room type " + type + " pwd " + password);
+    public Room createRoom(int id, String type, String password) {
+        log.info("creating room type " + type + " pwd " + password);
 
-        Room room = new Room(id);
+        Room room = new Room(id, gameSpecFactory.getGameSpec(type), gameStateFactory.getNewGameState(type));
         room.setPassword(password);
 
-        if (type.equals("hex")) {
-            room.setType("hex");
-            room.setExpectedPlayerCount(2);
-            room.setGameState(new HexGameState());
+        rooms.put(id, room);
 
-            rooms.put(id, room);
+        log.info("room " + id + " created");
 
-            logger.info("room " + id + " created");
-
-            return true;
-        }
-
-        return false;
+        return room;
     }
 
     public boolean isRoomExist(int id) {
@@ -45,5 +45,11 @@ public class RoomStateService {
         }
 
         return null;
+    }
+
+    public void dropRoom(int roomId) {
+        log.info("dropping room " + roomId);
+        rooms.remove(roomId);
+        roomIdService.returnId(roomId);
     }
 }
