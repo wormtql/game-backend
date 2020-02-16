@@ -66,10 +66,16 @@ public class MyWebSocketServer {
         } else {
             // 不能造成房间销毁
             // 调用特定游戏的玩家退出回调
-            room.getGameSpec().onPlayerQuit(userId, room);
 
-            // 更新房间状态
-            room.playerExit(userId);
+            if (room.isActive()) {
+                room.getGameSpec().onPlayerQuit(room.getPlayers().get(userId).getRole(), room);
+                // 更新房间状态
+                room.playerExit(userId);
+                // 重置游戏
+                room.endGame();
+            } else {
+                room.playerExit(userId);
+            }
         }
 
         // 删除会话
@@ -117,10 +123,10 @@ public class MyWebSocketServer {
 
                 room.addPlayer(userId, username);
 
-                String roomToken = JwtUtil.createRoomToken(userId, roomId);
+//                String roomToken = JwtUtil.createRoomToken(userId, roomId);
                 sessionService.addSession(session, userId, roomId);
                 try {
-                    sessionService.sendToUser(userId, MessageWrapper.roomTokenMessage(roomToken));
+                    sessionService.sendToUser(userId, MessageWrapper.roomIdMessage(roomId));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -145,10 +151,10 @@ public class MyWebSocketServer {
                     return;
                 }
 
-                String roomToken = JwtUtil.createRoomToken(userId, roomId);
+//                String roomToken = JwtUtil.createRoomToken(userId, roomId);
                 sessionService.addSession(session, userId, roomId);
                 try {
-                    sessionService.sendToUser(userId, MessageWrapper.roomTokenMessage(roomToken));
+                    sessionService.sendToUser(userId, MessageWrapper.roomIdMessage(roomId));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -157,22 +163,6 @@ public class MyWebSocketServer {
                 for (int u : room.getPlayers().keySet()) {
                     sessionService.sendToUser(u, MessageWrapper.updateMemberMessage(room));
                 }
-            } else {
-
-//                // 验证是否有操作这个房间的权限
-//                String token = obj.getString("token");
-//                Claims claims = JwtUtil.verifyJwt(token);
-//                if (claims == null) {
-//                    sessionService.sendToSession(session, MessageWrapper.errorMessage("未授权"));
-//                }
-
-//                int userId = Integer.parseInt(claims.get("userId", String.class));
-//                int roomId = Integer.parseInt(claims.get("roomId", String.class));
-
-                int userId = sessionService.getUserIdBySessionId(session.getId());
-                int roomId = sessionService.getRoomIdBySessionId(session.getId());
-
-                gameService.processMessage(obj, userId, roomId);
             }
         }
     }

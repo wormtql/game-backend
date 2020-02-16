@@ -9,14 +9,10 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 public class MessageWrapper {
-    public static JSONObject gameOverMessage(boolean win) {
+    public static JSONObject gameOverMessage(int winnerRole) {
         JSONObject json = new JSONObject();
         json.put("command", "over");
-        if (win) {
-            json.put("value", "win");
-        } else {
-            json.put("value", "lose");
-        }
+        json.put("role", winnerRole);
         return json;
     }
 
@@ -34,6 +30,13 @@ public class MessageWrapper {
         return json;
     }
 
+    public static JSONObject roomIdMessage(int id) {
+        JSONObject json = new JSONObject();
+        json.put("command", "room_id");
+        json.put("id", id);
+        return json;
+    }
+
     public static JSONObject errorMessage(String message) {
         JSONObject json = new JSONObject();
         json.put("command", "error");
@@ -45,10 +48,10 @@ public class MessageWrapper {
         JSONObject json = new JSONObject();
         JSONArray arr = new JSONArray();
 
-        for (int u : room.getPlayerName().keySet()) {
+        for (int u : room.getPlayers().keySet()) {
             JSONObject temp = new JSONObject();
-            temp.put("name", room.getPlayerName().get(u));
-            temp.put("status", room.getPlayers().get(u));
+            temp.put("name", room.getPlayers().get(u).getUsername());
+            temp.put("status", room.getPlayers().get(u).isReady());
 
             arr.add(temp);
         }
@@ -59,10 +62,24 @@ public class MessageWrapper {
         return json;
     }
 
-    public static JSONObject startGameMessage() {
+    public static JSONObject startGameMessage(int role) {
         JSONObject json = new JSONObject();
         json.put("command", "start");
+        json.put("role", role);
 
+        return json;
+    }
+
+    public static JSONObject yourTurnMessage() {
+        JSONObject json = new JSONObject();
+        json.put("command", "your_turn");
+        return json;
+    }
+
+    public static JSONObject playMessage(JSONObject play) {
+        JSONObject json = new JSONObject();
+        json.put("command", "play");
+        json.put("play", play);
         return json;
     }
 }

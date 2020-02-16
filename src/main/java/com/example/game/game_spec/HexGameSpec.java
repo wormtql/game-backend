@@ -1,5 +1,6 @@
 package com.example.game.game_spec;
 
+import com.example.game.model.PlayerState;
 import com.example.game.model.Room;
 import com.example.game.util.MessageWrapper;
 import com.example.game.service.SessionService;
@@ -7,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class HexGameSpec implements AbstractGameSpec {
@@ -29,28 +32,47 @@ public class HexGameSpec implements AbstractGameSpec {
     }
 
     @Override
-    public void onPlayerQuit(int userId, Room room) {
-        if (room.isActive()) {
-            // 已经开始游戏的时候有人退出
-            // 对手直接胜利
-            for (int u : room.getPlayers().keySet()) {
-                if (u != userId) {
-                    sessionService.sendToUser(u, MessageWrapper.gameOverMessage(true));
-                }
+    public void onPlayerQuit(int role, Room room) {
+        // 对手直接胜利
+        for (int u : room.getPlayers().keySet()) {
+            int r = room.getPlayers().get(u).getRole();
+            if (r != role) {
+                sessionService.sendToUser(u, MessageWrapper.gameOverMessage(r));
             }
-        } else {
-            // 游戏还没有开始
-            // 通知其他玩家有人退出
-            sessionService.sendToRoomExceptUser(room, userId, MessageWrapper.playerQuitMessage(userId));
         }
     }
 
     @Override
-    public int nextPlayer(List<Integer> players, int currentPlayer) {
-        if (players.get(0) == currentPlayer) {
-            return players.get(1);
-        } else {
-            return players.get(0);
+    public void onPlayerSurrender(int role, Room room) {
+        onPlayerQuit(role, room);
+    }
+
+    @Override
+    public int firstPlayer(Map<Integer, PlayerState> players, int round) {
+        List<Integer> temp = new ArrayList<>(players.keySet());
+        return temp.get(round % 2);
+    }
+
+    @Override
+    public int nextPlayer(Map<Integer, PlayerState> players, int currentPlayer) {
+        for (int u : players.keySet()) {
+            if (u != currentPlayer) {
+                return u;
+            }
+        }
+        return players.keySet().iterator().next();
+    }
+
+    @Override
+    public void assignRole(Map<Integer, PlayerState> players, int round) {
+        int i = 0;
+        for (int u : players.keySet()) {
+            if (round % 2 == i) {
+                players.get(u).setRole(1);
+            } else {
+                players.get(u).setRole(2);
+            }
+            i++;
         }
     }
 }

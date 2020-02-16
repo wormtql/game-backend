@@ -1,8 +1,10 @@
 package com.example.game.game_spec;
 
+import com.example.game.model.PlayerState;
 import com.example.game.model.Room;
 
 import java.util.List;
+import java.util.Map;
 
 public interface AbstractGameSpec {
     // 玩家数
@@ -12,13 +14,13 @@ public interface AbstractGameSpec {
     String getGameType();
 
     // 有人退出且房间没有解散(还有至少一个玩家)时调用此方法
-    void onPlayerQuit(int userId, Room room);
+    void onPlayerQuit(int role, Room room);
 
-    int nextPlayer(List<Integer> players, int currentPlayer);
+    void onPlayerSurrender(int surrenderRole, Room room);
 
-    default int firstPlayer(List<Integer> players, int round) {
-        return players.get(round % 2);
-    }
+    int nextPlayer(Map<Integer, PlayerState> players, int currentPlayer);
 
+    int firstPlayer(Map<Integer, PlayerState> players, int round);
 
+    void assignRole(Map<Integer, PlayerState> players, int round);
 }

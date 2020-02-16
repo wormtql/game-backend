@@ -27,16 +27,15 @@ public class Room {
     // 是否已经开始游戏
     private boolean active = false;
 
-    // 已经加入的玩家id以及准备状态
-    private Map<Integer, Boolean> players = new HashMap<>();
-    private Map<Integer, String> playerName = new HashMap<>();
+    // 已经加入的玩家id以及状态
+    private Map<Integer, PlayerState> players = new HashMap<>();
 
     // 抽象的游戏状态
     private AbstractGameState gameState;
     private AbstractGameSpec gameSpec;
 
     // 当前是第几局
-    private int round = 0;
+    private int round = -1;
     // 当前应该谁落子
     private int currentPlayerId = -1;
 
@@ -57,8 +56,7 @@ public class Room {
 
     public boolean addPlayer(int id, String username) {
         if (playerCount < gameSpec.getExpectedPlayerCount()) {
-            players.put(id, false);
-            playerName.put(id, username);
+            players.put(id, new PlayerState(false, username, -1));
             playerCount++;
             return true;
         }
@@ -67,7 +65,7 @@ public class Room {
 
     public boolean playerReady(int id) {
         if (players.containsKey(id)) {
-            players.put(id, true);
+            players.get(id).setReady(true);
             return true;
         }
         return false;
@@ -82,7 +80,7 @@ public class Room {
     public boolean canStartGame() {
         if (getPlayerCount() == getExpectedPlayerCount()) {
             for (int u : this.players.keySet()) {
-                if (!this.players.get(u)) {
+                if (!this.players.get(u).isReady()) {
                     return false;
                 }
             }
@@ -93,5 +91,33 @@ public class Room {
 
     public void startGame() {
         this.active = true;
+
+        this.round++;
+
+        // 确定第一个玩家
+        this.currentPlayerId = this.gameSpec.firstPlayer(players, round);
+        // 分配玩家身份
+        this.gameSpec.assignRole(players, round);
+    }
+
+    public void endGame() {
+        // 设置当前为not active
+        this.active = false;
+
+        // 取消所有人的准备状态
+        for (int u : players.keySet()) {
+            players.get(u).setReady(false);
+        }
+
+        // 重置game状态
+        this.gameState.refresh();
+    }
+
+    public void nextPlayer() {
+        this.currentPlayerId = this.gameSpec.nextPlayer(players, currentPlayerId);
+    }
+
+    public PlayerState getCurrentPlayerState() {
+        return this.players.get(this.currentPlayerId);
     }
 }
